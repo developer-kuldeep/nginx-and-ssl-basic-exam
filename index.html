@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- STREAMING_CHUNK:Configuring the document head and imports... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx & SSL Server Operations Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- STREAMING_CHUNK:Styling the global variables and utility classes... -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        .watermark { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); 
+            font-size: 5rem; font-weight: 900; color: rgba(241, 245, 249, 0.015); z-index: -1; 
+            pointer-events: none; user-select: none; white-space: nowrap;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between selection:bg-indigo-500/30 selection:text-indigo-200">
+
+    <div class="watermark">kuldeephimachal83@gmail.com</div>
+
+    <!-- STREAMING_CHUNK:Structuring the layout skeleton... -->
+    <!-- Navigation -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-orange-500 to-amber-500 p-2.5 rounded-xl text-white shadow-lg font-bold">
+                    🛡️
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-tight text-white">DevOps Academy</h1>
+                    <p class="text-[10px] text-orange-500 font-mono tracking-wider font-bold">NGINX & SSL OPERATIONS</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="timer" class="font-mono font-bold bg-slate-900 text-orange-500 px-4 py-1.5 rounded-lg text-sm shadow-inner hidden">15:00</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- ============================================== -->
+        <!-- SCREEN 1: REGISTRATION                         -->
+        <!-- ============================================== -->
+        <div id="screen-start" class="glass-panel p-8 sm:p-12 rounded-2xl text-center max-w-lg mx-auto mt-10 shadow-2xl">
+            <div class="text-5xl mb-4">🌐</div>
+            <h2 class="text-3xl font-extrabold mb-2 text-white">Nginx & SSL Exam</h2>
+            <p class="text-slate-400 mb-8 text-sm leading-relaxed">Validate your masterclass knowledge on virtual hosts, symlinking, syntax testing, UFW rules, and Certbot automation. You have exactly 15 minutes.</p>
+            
+            <input type="text" id="studentName" placeholder="Enter Your Full Name" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl mb-4 text-center text-white font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none transition-all">
+            
+            <button onclick="initializeExam()" class="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all shadow-lg uppercase tracking-widest text-sm">
+                Start Assessment
+            </button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SCREEN 2: ACTIVE EXAM LAYOUT                  -->
+        <!-- ============================================== -->
+        <!-- STREAMING_CHUNK:Adding responsive navigation and dynamic widgets... -->
+        <div id="screen-exam" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Side: Questions -->
+            <div class="col-span-12 lg:col-span-8 space-y-6">
+                <!-- Live Status Bar -->
+                <div class="flex justify-between items-center glass-panel p-4 rounded-xl shadow-sm sticky top-20 z-40">
+                    <span id="displayStudent" class="font-bold text-sm text-slate-300"></span>
+                    <span id="answeredCounter" class="text-xs font-mono font-bold text-orange-400 bg-orange-500/10 px-3 py-1 rounded-lg border border-orange-500/20">0 / 10 Answered</span>
+                </div>
+                
+                <div id="questions-workspace" class="space-y-6"></div>
+                
+                <button onclick="evaluateExam()" class="w-full mt-8 py-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold rounded-xl shadow-lg uppercase tracking-widest text-sm transition-all flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Submit & Grade Assessment
+                </button>
+            </div>
+
+            <!-- Right Side: Sticky Navigator -->
+            <div class="hidden lg:block lg:col-span-4 sticky top-24 h-fit space-y-6">
+                <div class="glass-panel p-6 rounded-2xl shadow-sm">
+                    <h4 class="font-bold mb-4 text-xs uppercase text-slate-400 tracking-widest border-b border-slate-800 pb-2">Exam Navigator</h4>
+                    <p class="text-[11px] text-slate-500 mb-4">Click a block to jump. Orange squares indicate completed answers.</p>
+                    
+                    <div id="grid-navigator" class="grid grid-cols-5 gap-2"></div>
+                </div>
+                
+                <div class="bg-amber-950/10 border border-amber-900/20 p-5 rounded-2xl space-y-3">
+                    <h5 class="font-bold text-amber-500 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-orange-500"></i> Local Hosting SOP
+                    </h5>
+                    <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                        Remember to check the Nginx syntax using <code>nginx -t</code> before running a reload command on live systems to prevent instant service crashes.
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SCREEN 3: DIAGNOSTICS & ANALYTICS              -->
+        <!-- ============================================== -->
+        <div id="screen-results" class="hidden space-y-8 max-w-3xl mx-auto">
+            
+            <div class="glass-panel p-8 sm:p-12 rounded-2xl text-center shadow-2xl border border-slate-800">
+                <span class="text-6xl block mb-4">🛡️</span>
+                <h2 class="text-3xl font-bold mb-2 text-white">Assessment Complete</h2>
+                <div id="scoreMetric" class="text-7xl font-black text-orange-500 my-6 tracking-tighter"></div>
+                <h4 id="feedbackTitle" class="text-xl font-bold text-slate-100 mb-2"></h4>
+                <p id="feedbackDesc" class="text-sm text-slate-400 leading-relaxed font-medium max-w-lg mx-auto"></p>
+                
+                <div class="pt-8 mt-6 flex justify-center gap-4 border-t border-slate-800">
+                    <button onclick="dispatchReportEmail()" class="py-3 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-amber-600 transition-colors uppercase tracking-widest text-xs flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-paper-plane"></i> Email Results
+                    </button>
+                    <button onclick="location.reload()" class="py-3 px-6 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 transition-colors uppercase tracking-widest text-xs">
+                        Retake Quiz
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-sm">
+                <h3 class="text-lg font-bold text-white mb-6 border-b border-slate-800 pb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-orange-500"></i> System Operational Review
+                </h3>
+                <div id="review-workspace" class="space-y-6"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8 text-slate-500 text-xs bg-slate-950 border-t border-slate-900 mt-8">
+        <p class="font-bold text-slate-400 uppercase tracking-widest mb-1">Created by DevOps Eng KULDEEP</p>
+        <p class="font-mono text-orange-500 mb-4">kuldeephimachal83@gmail.com</p>
+        <div class="flex justify-center gap-6 text-xl">
+            <a href="https://www.linkedin.com/in/kuldeep-engineer/" target="_blank" class="hover:text-orange-500 transition-colors" title="LinkedIn Profile"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://github.com/developer-kuldeep" target="_blank" class="hover:text-orange-500 transition-colors" title="GitHub Profile"><i class="fa-brands fa-github"></i></a>
+        </div>
+    </footer>
+
+    <!-- STREAMING_CHUNK:Initializing global variables and structures... -->
+    <script>
+        const quizData = [
+            {
+                q: "What is the standard directory where you should create new virtual host configuration files in Nginx on Debian/Ubuntu before enabling them?",
+                o: ["/etc/nginx/sites-enabled/", "/etc/nginx/sites-available/", "/etc/nginx/conf.d/", "/var/www/html/"],
+                a: 1,
+                r: "Nginx standard operating procedure (SOP) requires configurations to be drafted inside 'sites-available' first before symlinking to enabled paths."
+            },
+            {
+                q: "Why do we use the 'ln -s' command when setting up Nginx server blocks?",
+                o: ["To physically copy files to double storage size", "To establish a symbolic link that safely activates the configuration inside the enabled folder", "To delete old duplicate configs", "To compile configurations into system binaries"],
+                a: 1,
+                r: "'ln -s' creates a symbolic reference. This allows you to toggle sites on or off simply by adding or removing the link."
+            },
+            {
+                q: "Which command checks your Nginx configuration files for syntax errors before applying them?",
+                o: ["sudo systemctl status nginx", "sudo nginx -t", "sudo systemctl start nginx", "nginx --verify"],
+                a: 1,
+                r: "The '-t' flag runs a comprehensive Nginx configuration test, ensuring no typo-induced downtime occurs."
+            },
+            {
+                q: "What is the primary function of the 'dig +short' command when troubleshooting domain setups?",
+                o: ["To purchase system domains", "To instantly retrieve the public IP address mapped to a domain from DNS servers", "To check local ping timing metric logs", "To scan for open ports"],
+                a: 1,
+                r: "dig is a DNS Lookup utility. '+short' trims extraneous headers and returns clean numeric target A-records."
+            },
+            {
+                q: "How do you retrieve your server's public IPv4 address directly from the terminal?",
+                o: ["ip addr show", "ifconfig -a", "curl ifconfig.me", "ping localhost"],
+                a: 2,
+                r: "ifconfig.me is a public utility; fetching it via curl is the standard way to inspect outbound public NAT IPs."
+            },
+            {
+                q: "What network protocol does the 'ping' utility rely on to check server connectivity?",
+                o: ["TCP", "UDP", "ICMP", "HTTP"],
+                a: 2,
+                r: "The Ping command operates at Layer 3 using the Internet Control Message Protocol (ICMP) echo request packets."
+            },
+            {
+                q: "What is the key difference between running 'systemctl start nginx' and 'systemctl enable nginx'?",
+                o: ["They are identical commands", "Start runs the service now; enable configures it to start on system boot", "Enable runs it now; start configures it on boot", "Enable requires root passwords"],
+                a: 1,
+                r: "systemctl 'start' launches the process immediately, while 'enable' configures symlinks to guarantee startup after system reboots."
+            },
+            {
+                q: "What firewall rules are allowed when you execute 'sudo ufw allow 'Nginx Full''?",
+                o: ["Only Port 80 (HTTP) traffic", "Only Port 443 (HTTPS) traffic", "Both HTTP (Port 80) and HTTPS (Port 443) traffic", "Port 22 SSH traffic"],
+                a: 2,
+                r: "Nginx profiles include 'Nginx HTTP' (80), 'Nginx HTTPS' (443), and 'Nginx Full' which allows BOTH."
+            },
+            {
+                q: "Which packages must be installed on Ubuntu to automatically configure Let's Encrypt certificates for Nginx?",
+                o: ["sudo apt install certbot-only", "sudo apt install certbot python3-certbot-nginx -y", "sudo apt install nginx-ssl", "sudo apt install openssl"],
+                a: 1,
+                r: "This provides the Certbot executable along with the Nginx helper script to automate virtual host edits."
+            },
+            {
+                q: "Which command is used to inspect active certificates managed by Certbot and view their exact expiration dates?",
+                o: ["sudo certbot certificates", "sudo certbot status", "sudo systemctl status nginx", "sudo certbot renew"],
+                a: 0,
+                r: "'certbot certificates' runs a scan on your local keystores and details valid names, keys, paths, and expiration periods."
+            }
+        ];
+
+        let userChoices = new Array(quizData.length).fill(null);
+        let timeLeft = 900; // 15 minutes
+        let timerInterval;
+
+        // STREAMING_CHUNK:Defining event hooks and progress meters... -->
+        function initializeExam() {
+            const name = document.getElementById('studentName').value.trim();
+            if(!name) return alert("Please enter your name to begin.");
+            
+            document.getElementById('timer').classList.remove('hidden');
+            document.getElementById('displayStudent').textContent = `Candidate: ${name}`;
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-exam').classList.remove('hidden');
+            
+            // STREAMING_CHUNK:Generating HTML layout dynamically... -->
+            const workspace = document.getElementById('questions-workspace');
+            let qHTML = '';
+            quizData.forEach((item, i) => {
+                qHTML += `
+                <div id="q-${i}" class="glass-panel p-6 sm:p-8 rounded-2xl shadow-sm scroll-mt-24">
+                    <p class="font-bold mb-4 text-white text-base">${i+1}. ${item.q}</p>
+                    <div class="grid gap-2">
+                        ${item.o.map((opt, oi) => `
+                        <label class="block p-4 bg-slate-950 border border-slate-800 rounded-xl cursor-pointer hover:bg-slate-900 hover:border-orange-500/30 transition-colors">
+                            <input type="radio" name="q${i}" value="${oi}" onchange="recordChoice(${i}, ${oi})" class="mr-3 text-orange-500 focus:ring-orange-500 bg-slate-900 border-slate-800"> 
+                            <span class="text-sm font-medium text-slate-300">${opt}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>`;
+            });
+            workspace.innerHTML = qHTML;
+            
+            const nav = document.getElementById('grid-navigator');
+            let navHTML = '';
+            for(let i=0; i<quizData.length; i++) {
+                navHTML += `<button id="nav-${i}" onclick="jumpTo(${i})" class="p-2 bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 rounded-lg text-xs font-bold transition-all">${i+1}</button>`;
+            }
+            nav.innerHTML = navHTML;
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            window.scrollTo(0,0);
+        }
+
+        function jumpTo(index) {
+            document.getElementById(`q-${index}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            const mins = Math.floor(timeLeft/60);
+            const secs = timeLeft % 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+            
+            if(timeLeft < 180) { 
+                timerEl.classList.remove('text-orange-500');
+                timerEl.classList.add('text-red-500', 'animate-pulse');
+            }
+            
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                evaluateExam();
+            }
+        }
+
+        function recordChoice(q, o) {
+            userChoices[q] = o;
+            document.getElementById(`nav-${q}`).className = "p-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-xs font-bold shadow-sm transition-all";
+            const answered = userChoices.filter(a => a !== null).length;
+            document.getElementById('answeredCounter').innerText = `${answered} / ${quizData.length} Answered`;
+        }
+
+        // STREAMING_CHUNK:Evaluating scores and outputting rationales... -->
+        function evaluateExam() {
+            clearInterval(timerInterval);
+            let score = 0;
+            const review = document.getElementById('review-workspace');
+            review.innerHTML = "";
+            
+            quizData.forEach((item, i) => {
+                const correct = userChoices[i] === item.a;
+                if(correct) score++;
+                
+                review.innerHTML += `
+                    <div class="p-6 rounded-2xl border ${correct ? 'bg-emerald-950/20 border-emerald-900/30' : 'bg-rose-950/20 border-rose-900/30'}">
+                        <p class="font-bold text-white mb-3">${i+1}. ${item.q}</p>
+                        <p class="text-sm text-slate-400 mb-1">Your answer: <span class="font-bold ${correct ? 'text-emerald-400' : 'text-rose-400'}">${userChoices[i] !== null ? item.o[userChoices[i]] : 'Skipped'}</span></p>
+                        <p class="text-sm text-slate-400 mb-4">Correct: <span class="text-emerald-400 font-bold">${item.o[item.a]}</span></p>
+                        <div class="bg-slate-950 p-4 rounded-xl border ${correct ? 'border-emerald-900/30' : 'border-rose-900/30'} shadow-sm">
+                            <strong class="text-xs uppercase tracking-widest text-orange-500 block mb-1">Explanation</strong>
+                            <p class="text-xs text-slate-300 leading-relaxed">${item.r}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('screen-exam').classList.add('hidden');
+            document.getElementById('timer').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('hidden');
+            document.getElementById('scoreMetric').innerText = `${score} / ${quizData.length}`;
+            
+            const percent = (score / quizData.length) * 100;
+            let title = "", desc = "";
+            if(percent < 60) {
+                title = "Ops Foundation Review Needed";
+                desc = "You missed some critical configurations. Ensure you understand the distinction between available vs. enabled configurations and the mandatory steps to test configuration syntax.";
+            } else if(percent < 90) {
+                title = "Nginx Operator Level";
+                desc = "Excellent foundation! You thoroughly understand the file configurations, verification routines, and Certbot automation paths.";
+            } else {
+                title = "Senior Cloud Architect";
+                desc = "Flawless score! You fully comprehend DNS, Nginx state mechanics, firewall parameters, and certificate validation frameworks.";
+            }
+            document.getElementById('feedbackTitle').innerText = title;
+            document.getElementById('feedbackDesc').innerText = desc;
+            
+            window.scrollTo(0,0);
+        }
+
+        // STREAMING_CHUNK:Configuring SMTP mail trigger dispatch... -->
+        function dispatchReportEmail() {
+            const name = document.getElementById('studentName').value;
+            const score = userChoices.filter((a, i) => a === quizData[i].a).length;
+            const percent = ((score / quizData.length) * 100).toFixed(1);
+            
+            let body = `NGINX & SSL EXAM RESULTS%0D%0A`;
+            body += `---------------------------------%0D%0A`;
+            body += `Student: ${name}%0D%0A`;
+            body += `Score: ${score} / ${quizData.length} (${percent}%)%0D%0A`;
+            body += `Date: ${new Date().toLocaleString()}%0D%0A`;
+            
+            window.location.href = `mailto:kuldeephimachal83@gmail.com?subject=Nginx SSL Exam: ${name}&body=${body}`;
+        }
+    </script>
+</body>
+</html>
